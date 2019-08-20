@@ -1,0 +1,119 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<beans xmlns="http://www.springframework.org/schema/beans"
+       xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+       xmlns:p="http://www.springframework.org/schema/p"
+       xmlns:mvc="http://www.springframework.org/schema/mvc"
+       xmlns:context="http://www.springframework.org/schema/context"
+       xmlns:util="http://www.springframework.org/schema/util" xmlns:aop="http://www.springframework.org/schema/aop"
+       xmlns:tx="http://www.springframework.org/schema/tx"
+       xsi:schemaLocation="http://www.springframework.org/schema/beans http://www.springframework.org/schema/beans/spring-beans-3.0.xsd
+            http://www.springframework.org/schema/context http://www.springframework.org/schema/context/spring-context-3.0.xsd
+            http://www.springframework.org/schema/mvc http://www.springframework.org/schema/mvc/spring-mvc-3.0.xsd
+            http://www.springframework.org/schema/util http://www.springframework.org/schema/util/spring-util-3.0.xsd http://www.springframework.org/schema/aop http://www.springframework.org/schema/aop/spring-aop.xsd http://www.springframework.org/schema/tx http://www.springframework.org/schema/tx/spring-tx.xsd">
+
+<!--创建数据源-->
+    <bean id="dataSource" class="com.alibaba.druid.pool.DruidDataSource" destroy-method="close" init-method="init" >
+        <property name="url" value="${spring.datasource.url}"/>
+        <property name="username" value="root"/>
+        <property name="password" value="123456"/>
+        <property value="10" name="initialSize" />
+        <property value="10" name="minIdle" />
+        <property value="100" name="maxActive" />
+        <property value="60000" name="maxWait" />
+        <property value="60000" name="timeBetweenEvictionRunsMillis" />
+        <property value="300000" name="minEvictableIdleTimeMillis" />
+        <property value="SELECT 1 from dual" name="validationQuery" />
+        <property value="true" name="testWhileIdle" />
+        <property value="false" name="testOnBorrow" />
+        <property value="false" name="testOnReturn" />
+        <property value="true" name="poolPreparedStatements" />
+        <property value="100" name="maxPoolPreparedStatementPerConnectionSize" />
+        <property name="filters" value="stat,wall" />
+<!--
+        		<property name="filters" value="stat,log4j" />
+-->
+        <property name="connectionProperties" value="druid.stat.mergeSql=true" />
+        <property name="useGlobalDataSourceStat" value="false" />
+        <!-- <property name="statLogger" ref="myStatLogger" /> -->
+        <!-- 单位毫秒, 24小时清理一次到日志文件  -->
+        <property name="timeBetweenLogStatsMillis" value="86400000" />
+        <!-- <property name="timeBetweenLogStatsMillis" value="100000" /> -->
+    </bean>
+
+    <!--数据管理中心-->
+    <bean id="jdbcTransactionManager" class="org.springframework.jdbc.datasource.DataSourceTransactionManager">
+        <property name="dataSource">
+            <ref bean="dataSource"/>
+        </property>
+    </bean>
+
+    <!--通知-->
+    <tx:advice id="txAdvice" transaction-manager="jdbcTransactionManager">
+        <tx:attributes>
+            <!-- 注入事务策略 -->
+            <tx:method name="creat*" propagation="REQUIRED"  isolation="READ_COMMITTED" rollback-for="Exception"/>
+            <tx:method name="delet*"  propagation="REQUIRED" isolation="READ_COMMITTED" rollback-for="Exception"/>
+            <tx:method name="updat*"  propagation="REQUIRED" isolation="READ_COMMITTED" rollback-for="Exception"/>
+            <tx:method name="delet*"  propagation="REQUIRED" isolation="READ_COMMITTED" rollback-for="Exception"/>
+            <tx:method name="save*"  propagation="REQUIRED" isolation="READ_COMMITTED" rollback-for="Exception"/>
+            <tx:method name="inser*"  propagation="REQUIRED" isolation="READ_COMMITTED" rollback-for="Exception"/>
+            <tx:method name="doRun*"  propagation="REQUIRED" isolation="READ_COMMITTED" rollback-for="Exception"/>
+            <tx:method name="batch*"  propagation="REQUIRED" isolation="READ_COMMITTED" rollback-for="Exception"/>
+            <tx:method name="find*"  propagation="SUPPORTS" isolation="READ_COMMITTED" />
+            <tx:method name="get*"  propagation="SUPPORTS" isolation="READ_COMMITTED" />
+            <tx:method name="query*"  propagation="SUPPORTS" isolation="READ_COMMITTED" />
+            <tx:method name="noTrans*"  propagation="NOT_SUPPORTED" isolation="READ_COMMITTED" />
+            <tx:method name="newTrans*"  propagation="REQUIRES_NEW" isolation="READ_COMMITTED" />
+        </tx:attributes>
+    </tx:advice>
+
+    <!-- 配置AOP切点 -->
+    <aop:config>
+        <!-- 配置AOP切点策略 -->
+<!--
+        <aop:pointcut id="service" expression="(execution(public * *..*.service.impl.*.*(..)))"/>
+-->
+        <aop:pointcut id="service" expression="(execution(public * main.com.*..*.service.impl.*.*(..)))"/>
+        <!-- 注入切点,切点策略 -->
+        <aop:advisor advice-ref="txAdvice" pointcut-ref="service" order="1"/>
+    </aop:config>
+
+<!--配置spring jdbc-->
+    <bean id="jdbcTransactionTemplate" class="org.springframework.transaction.support.TransactionTemplate">
+        <property name="transactionManager">
+            <ref bean="jdbcTransactionManager"/>
+        </property>
+    </bean>
+
+    <bean id="jdbcTransactionProxy" abstract="true"
+          class="org.springframework.transaction.interceptor.TransactionProxyFactoryBean">
+        <property name="pointcut">
+            <bean class="org.springframework.aop.support.annotation.AnnotationMatchingPointcut">
+                <constructor-arg index="0" value="org.springframework.stereotype.Service"/>
+            </bean>
+        </property>
+        <property name="transactionManager">
+            <ref bean="jdbcTransactionManager"/>
+        </property>
+
+        <property name="transactionAttributes">
+            <props>
+                <prop key="creat*">PROPAGATION_REQUIRED,ISOLATION_READ_COMMITTED,-Exception</prop>
+                <prop key="delet*">PROPAGATION_REQUIRED,ISOLATION_READ_COMMITTED,-Exception</prop>
+                <prop key="updat*">PROPAGATION_REQUIRED,ISOLATION_READ_COMMITTED,-Exception</prop>
+                <prop key="save*">PROPAGATION_REQUIRED,ISOLATION_READ_COMMITTED,-Exception</prop>
+                <prop key="inser*">PROPAGATION_REQUIRED,ISOLATION_READ_COMMITTED,-Exception</prop>
+                <prop key="doRun*">PROPAGATION_REQUIRED,ISOLATION_READ_COMMITTED,-Exception</prop>
+                <prop key="batch*">PROPAGATION_REQUIRED,ISOLATION_READ_COMMITTED,-Exception</prop>
+                <prop key="find*">PROPAGATION_SUPPORTS,ISOLATION_READ_COMMITTED</prop>
+                <prop key="get*">PROPAGATION_SUPPORTS,ISOLATION_READ_COMMITTED</prop>
+                <prop key="query*">PROPAGATION_SUPPORTS,ISOLATION_READ_COMMITTED</prop>
+                <prop key="noTrans*">PROPAGATION_NOT_SUPPORTED,ISOLATION_READ_COMMITTED</prop>
+                <prop key="newTrans*">PROPAGATION_REQUIRES_NEW,ISOLATION_READ_COMMITTED</prop>
+                <prop key="*">PROPAGATION_REQUIRED,ISOLATION_READ_COMMITTED</prop>
+            </props>
+        </property>
+    </bean>
+
+
+</beans>
