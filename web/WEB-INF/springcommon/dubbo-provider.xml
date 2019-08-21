@@ -1,0 +1,17 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<beans xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+       xmlns:dubbo="http://dubbo.apache.org/schema/dubbo"
+       xmlns="http://www.springframework.org/schema/beans"
+       xsi:schemaLocation="http://www.springframework.org/schema/beans http://www.springframework.org/schema/beans/spring-beans.xsd
+       http://dubbo.apache.org/schema/dubbo http://dubbo.apache.org/schema/dubbo/dubbo.xsd">
+   <!--服务提供者-->
+    <!--定义dubbo 当前应用信息，不管是服务的提供者还是服务的消费者-->
+    <dubbo:application name="demo-provider"/>
+    <bean id="demoService" class="main.com.dubbo.provider.ProviderServiceImpl"/>
+    <!--定义注册中心 这里配置的事zookeeper 的地址-->
+    <dubbo:registry address="zookeeper://127.0.0.1:2181"/>
+    <!--协议 类型和端口号-->
+    <dubbo:protocol name="dubbo" port="20890"/>
+    <!-- 版本号要更消费方的版本号对应 timeout 是超时时间-->
+    <dubbo:service interface="org.apache.dubbo.samples.basic.api.DemoService" ref="demoService" version="1.0"  timeout="5000"/>
+</beans>
