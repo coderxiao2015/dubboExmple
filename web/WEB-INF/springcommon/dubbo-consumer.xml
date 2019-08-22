@@ -4,7 +4,10 @@
        xmlns="http://www.springframework.org/schema/beans"
        xsi:schemaLocation="http://www.springframework.org/schema/beans http://www.springframework.org/schema/beans/spring-beans.xsd
        http://dubbo.apache.org/schema/dubbo http://dubbo.apache.org/schema/dubbo/dubbo.xsd">
+    <!--服务消费中心-->
     <dubbo:application name="demo-consumer"/>
-    <dubbo:registry group="aaa" address="zookeeper://127.0.0.1:2181"/>
-    <dubbo:reference id="demoService" check="false" interface="org.apache.dubbo.samples.basic.api.DemoService"/>
+    <!-- 服务注册中心 -->
+    <dubbo:registry group="groupName" address="zookeeper://127.0.0.1:2181"/>
+    <!-- 消费者消费的服务 -->
+    <dubbo:reference id="demoService" check="false" interface="main.com.dubbo.provider.ProviderServiceImpl"/>
 </beans>

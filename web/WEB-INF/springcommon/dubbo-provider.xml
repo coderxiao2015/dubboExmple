@@ -4,14 +4,20 @@
        xmlns="http://www.springframework.org/schema/beans"
        xsi:schemaLocation="http://www.springframework.org/schema/beans http://www.springframework.org/schema/beans/spring-beans.xsd
        http://dubbo.apache.org/schema/dubbo http://dubbo.apache.org/schema/dubbo/dubbo.xsd">
+
    <!--服务提供者-->
     <!--定义dubbo 当前应用信息，不管是服务的提供者还是服务的消费者-->
     <dubbo:application name="demo-provider"/>
+    <!-- 服务的具体提供方 -->
     <bean id="demoService" class="main.com.dubbo.provider.ProviderServiceImpl"/>
-    <!--定义注册中心 这里配置的事zookeeper 的地址-->
-    <dubbo:registry address="zookeeper://127.0.0.1:2181"/>
-    <!--协议 类型和端口号-->
+    <!--定义注册中心 这里配置的事zookeeper 的地址 协议方式zookeeper-->
+    <!-- 使用方式：若配置了protocol则 address 不需要加zookeeper:// 协议头，否则要加上  -->
+    <dubbo:registry protocol="zookeeper" address="zookeeper://127.0.0.1:2181"/>
+    <!--协议 类型和端口号 -->
     <dubbo:protocol name="dubbo" port="20890"/>
-    <!-- 版本号要更消费方的版本号对应 timeout 是超时时间-->
-    <dubbo:service interface="org.apache.dubbo.samples.basic.api.DemoService" ref="demoService" version="1.0"  timeout="5000"/>
+    <!-- interface:服务提供方标识，消费方通过这个参数调用不同的服务-->
+    <!--   版本号要更消费方的版本号对应 -->
+    <!-- timeout 是超时时间 只有服务提供方才会有超时时间-->
+    <!-- 只有group  interface version 是服务的匹配条件，三者决定是不是同一个服务，其他配置项为调优和治理参数  -->
+    <dubbo:service interface="main.com.dubbo.provider.ProviderServiceImpl" ref="demoService" version="1.0"  timeout="5000"/>
 </beans>
